@@ -12,7 +12,11 @@ gitlab {
     timeout = 90
     url = "https://gitlab.example.com/api/v4/"
     api_key_path = "/path/to/my/api/key"
-    color = '#FF0000'
+    few_color = '#FF0000'
+    few_issues_limit = 10
+    many_color = '#00FF00'
+    many_issues_limit = 40
+    extreme_color = '#0000FF'
 }
 ```
 
@@ -26,7 +30,14 @@ class Py3status:
     api_key_path = "~/.gitlab-token"
     url = "https://gitlab.labs.nic.cz/api/v4/"
     timeout = 60
-    color = '#FFFF00'
+
+    few_color = '#00FF00'
+    few_issues_limit = 5
+
+    many_color = '#FFFF00'
+    many_issues_limit = 30
+
+    extreme_color = '#FF0000'
 
     def post_config_hook(self):
         with open(os.path.expanduser(self.api_key_path)) as f:
@@ -46,10 +57,14 @@ class Py3status:
 
         resp.close()
 
+        issue_count = int(resp.headers['X-Total'])
+
         return {
-            "full_text": f"GL issues #{resp.headers['X-Total']}",
+            "full_text": f"GL issues #{issue_count}",
             "cached_until": self.py3.time_in(int(self.timeout)),
-            "color": self.color
+            "color": self.few_color if issue_count <= self.few_issues_limit else (
+                self.many_color if issue_count <= self.many_issues_limit else self.extreme_color
+            )
         }
 
 
